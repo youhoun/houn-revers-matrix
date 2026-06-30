@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Matrix Inverse Calculator</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+    background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81,#0f766e);
+    background-size:400% 400%;
+    animation:bg 15s ease infinite;
+}
+
+@keyframes bg{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+.glass{
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.15);
+}
+
+input[type=number]::-webkit-inner-spin-button{
+    opacity:1;
+}
+</style>
+
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-8">
+
+<div class="glass rounded-3xl shadow-2xl max-w-6xl w-full p-10">
+
+    <h1 class="text-center text-5xl font-extrabold text-cyan-300">
+        Matrix Inverse
+    </h1>
+
+    <p class="text-center text-gray-300 mt-2 mb-10">
+        Gauss-Jordan Elimination Calculator
+    </p>
+
+    <div class="flex flex-wrap justify-center gap-5 items-center">
+
+        <label class="text-white font-semibold text-lg">
+            Matrix Size
+        </label>
+
+        <input
+            id="size"
+            type="number"
+            value="2"
+            min="2"
+            max="20"
+            class="w-24 text-center rounded-xl bg-slate-900 text-cyan-300 border border-cyan-400 py-3 outline-none focus:ring-4 focus:ring-cyan-400">
+
+        <button
+            onclick="createMatrix()"
+            class="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 transition text-white font-bold shadow-lg">
+            Create
+        </button>
+
+        <button
+            onclick="inverseMatrix()"
+            class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 transition text-white font-bold shadow-lg">
+            Calculate
+        </button>
+
+        <button
+            onclick="clearMatrix()"
+            class="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-500 transition text-white font-bold shadow-lg">
+            Clear
+        </button>
+
+    </div>
+
+    <div id="matrixInputs"
+         class="flex justify-center mt-10 overflow-auto">
+    </div>
+
+    <div id="result" class="mt-10"></div>
+
+</div>
+
+<script>
+
+window.onload=createMatrix;
+
+function createMatrix(){
+
+let n=parseInt(document.getElementById("size").value);
+
+let html="<table class='border-separate border-spacing-3'>";
+
+for(let i=0;i<n;i++){
+
+html+="<tr>";
+
+for(let j=0;j<n;j++){
+
+html+=`
+<td>
+<input
+type="number"
+step="any"
+value="0"
+id="a${i}${j}"
+class="w-20 h-14 rounded-xl text-center text-cyan-200 bg-slate-900 border border-cyan-500 shadow-lg focus:ring-2 focus:ring-cyan-400 outline-none">
+</td>
+`;
+
+}
+
+html+="</tr>";
+
+}
+
+html+="</table>";
+
+document.getElementById("matrixInputs").innerHTML=html;
+document.getElementById("result").innerHTML="";
+
+}
+
+function clearMatrix(){
+
+let n=parseInt(document.getElementById("size").value);
+
+for(let i=0;i<n;i++){
+
+for(let j=0;j<n;j++){
+
+document.getElementById(`a${i}${j}`).value=0;
+
+}
+
+}
+
+document.getElementById("result").innerHTML="";
+
+}
+
+function inverseMatrix(){
+
+let n=parseInt(document.getElementById("size").value);
+
+let a=[];
+
+for(let i=0;i<n;i++){
+
+a[i]=[];
+
+for(let j=0;j<n;j++){
+
+let value=parseFloat(document.getElementById(`a${i}${j}`).value);
+
+if(isNaN(value))value=0;
+
+a[i][j]=value;
+
+}
+
+}
+
+for(let i=0;i<n;i++){
+
+for(let j=n;j<2*n;j++){
+
+a[i][j]=(j===i+n)?1:0;
+
+}
+
+}
+
+for(let i=0;i<n;i++){
+
+if(Math.abs(a[i][i])<1e-12){
+
+let swap=-1;
+
+for(let k=i+1;k<n;k++){
+
+if(Math.abs(a[k][i])>1e-12){
+
+swap=k;
+break;
+
+}
+
+}
+
+if(swap==-1){
+
+document.getElementById("result").innerHTML=`
+<div class="bg-red-500/20 border border-red-400 text-red-300 rounded-xl p-5 text-center font-bold">
+Inverse does not exist (Singular Matrix)
+</div>
+`;
+
+return;
+
+}
+
+[a[i],a[swap]]=[a[swap],a[i]];
+
+}
+
+let pivot=a[i][i];
+
+for(let j=0;j<2*n;j++){
+
+a[i][j]/=pivot;
+
+}
+
+for(let k=0;k<n;k++){
+
+if(k!=i){
+
+let factor=a[k][i];
+
+for(let j=0;j<2*n;j++){
+
+a[k][j]-=factor*a[i][j];
+
+}
+
+}
+
+}
+
+}
+
+let html=`
+<h2 class="text-center text-4xl text-cyan-300 font-bold mb-6">
+Inverse Matrix
+</h2>
+
+<div class="overflow-auto">
+
+<table class="mx-auto border-separate border-spacing-2">
+`;
+
+for(let i=0;i<n;i++){
+
+html+="<tr>";
+
+for(let j=n;j<2*n;j++){
+
+html+=`
+<td class="bg-slate-900 border border-cyan-400 text-cyan-200 px-6 py-4 rounded-lg text-center font-bold">
+${a[i][j].toFixed(4)}
+</td>
+`;
+
+}
+
+html+="</tr>";
+
+}
+
+html+="</table></div>";
+
+document.getElementById("result").innerHTML=html;
+
+}
+
+</script>
+
+</body>
+</html>
